@@ -889,6 +889,62 @@ elif current_page == "Flight Ops":
             else:
                 st.info("No delays in current filter — heatmap not applicable.")
 
+        # --- LLM Operations Advisor ---
+        st.markdown("<div style='height:24px'></div>", unsafe_allow_html=True)
+        st.markdown("#### 🤖 Operations Advisor — AI Recommendations")
+
+        delayed_flights = df[df["Flight_Status"] == "Delayed"]
+        if not delayed_flights.empty:
+            shipments_sql = f"""
+                SELECT s.AWB_Number, s.Flight_ID, s.Commodity_Type, s.Revenue_Generated_USD,
+                       s.Priority_Level, c.Company_Name, c.Customer_Tier, c.Account_Sentiment_Score
+                FROM {CATALOG}.{SCHEMA}.msc_shipments s
+                JOIN {CATALOG}.{SCHEMA}.msc_customers c ON s.Customer_ID = c.Customer_ID
+                WHERE s.Flight_ID IN ({','.join(f"'{fid}'" for fid in delayed_flights['Flight_ID'].tolist())})
+                ORDER BY s.Revenue_Generated_USD DESC
+            """
+            ship_cols, ship_data = execute_sql_with_columns(shipments_sql)
+            ship_df = pd.DataFrame(ship_data, columns=ship_cols) if ship_cols and ship_data else pd.DataFrame()
+
+            if st.button("🛡️ Generate Operations Advisory", use_container_width=True):
+                flight_summary = "\n".join(
+                    f"- {row['Flight_ID']}: {row['Origin_City']} ({row['Origin']}) → {row['Destination_City']} ({row['Destination']}), "
+                    f"Delay: {row['Delay_Minutes']}min, Status: {row['Flight_Status']}, "
+                    f"Protected: {row['Schedule_Protection_Flag']}, Sentiment Watch: {row['Sentiment_Analysis_Flag']}"
+                    for _, row in delayed_flights.iterrows()
+                )
+                shipment_summary = ""
+                if not ship_df.empty:
+                    shipment_summary = "\n".join(
+                        f"- AWB {row['AWB_Number']} on {row['Flight_ID']}: {row['Commodity_Type']}, "
+                        f"${float(row['Revenue_Generated_USD']):,.0f}, {row['Priority_Level']} priority, "
+                        f"Customer: {row['Company_Name']} ({row['Customer_Tier']}, sentiment {row['Account_Sentiment_Score']}/10)"
+                        for _, row in ship_df.iterrows()
+                    )
+
+                prompt = f"""You are an MSC Air Cargo operations advisor. Analyze the following delayed flights and their shipments, then provide actionable recommendations.
+
+DELAYED FLIGHTS:
+{flight_summary}
+
+AFFECTED SHIPMENTS:
+{shipment_summary if shipment_summary else "No shipment data available."}
+
+Provide a structured operations advisory with these sections:
+1. **IMMEDIATE ACTIONS** (next 30 minutes) — what the ops team must do right now
+2. **RE-ROUTING OPTIONS** — suggest alternative routing for the most critical cargo (Doc Charter, Pharma, Live Animals first), referencing specific flights and hubs
+3. **CUSTOMER ESCALATION** — which customers to contact first (prioritize by tier + sentiment + revenue), with specific talking points
+4. **SCHEDULE PROTECTION** — for any protected flights, flag SLA breach risk and penalty mitigation steps
+5. **PRIORITY RE-RANKING** — if resources are limited, which shipments to prioritize and which can tolerate the delay
+
+Be specific: reference flight IDs, customer names, revenue amounts, and commodity types. Frame recommendations as an ops manager would act on them."""
+
+                with st.spinner("Analyzing flight disruptions and generating advisory..."):
+                    response = call_llm([{"role": "user", "content": prompt}], max_tokens=2048, temperature=0.3)
+                st.markdown(response)
+        else:
+            st.success("No delayed flights in current view — no advisory needed.")
+
     else:
         st.info("No flights match the current filters or data unavailable.")
 
