@@ -1,0 +1,31 @@
+Customer_ID,Company_Name,Customer_Tier,Account_Sentiment_Score,Annual_Revenue_USD,Primary_Contact,Region
+CUST-001,GlobalFreight Solutions,Standard,8,671412.55,Allison Hill,EMEA
+CUST-002,TransOcean Logistics,Gold,5,4035229.47,Noah Rhodes,Americas
+CUST-003,AirBridge Cargo Partners,Gold,6,2690457.59,Angie Henderson,EMEA
+CUST-004,SwiftCargo International,Standard,8,372251.01,Daniel Wagner,APAC
+CUST-005,PharmaFly Express,Standard,5,281768.22,Cristian Santos,EMEA
+CUST-006,FreshChain Logistics,Gold,6,2435917.52,Connie Lawrence,Americas
+CUST-007,EliteForward GmbH,Platinum/VIP,6,7645208.67,Abigail Shaffer,Americas
+CUST-008,PacificAir Freight,Gold,4,2837699.52,Gina Moore,APAC
+CUST-009,MedTrans Global,Gold,6,1315200.79,Gabrielle Davis,Americas
+CUST-010,CargoLink Asia,Standard,8,694815.8,Ryan Munoz,APAC
+CUST-011,AtlasForward Ltd,Gold,9,3309408.58,Monica Herrera,EMEA
+CUST-012,NovaCargo SA,Standard,3,236659.51,Jamie Arnold,APAC
+CUST-013,PrimeShip Logistics,Standard,8,988177.22,Lisa Hensley,EMEA
+CUST-014,VelocityAir Freight,Standard,5,893186.93,Michele Williams,APAC
+CUST-015,Continental Cargo Co,Standard,8,562728.24,Dylan Miller,APAC
+CUST-016,SkyBridge Partners,Standard,4,330123.28,Brian Ramirez,EMEA
+CUST-017,OceanAir Express,Platinum/VIP,6,11701751.74,Holly Wood,Americas
+CUST-018,AlpineFreight AG,Gold,8,3539913.15,Derek Zuniga,Americas
+CUST-019,TropicCargo Ltd,Standard,5,395848.74,Lisa Jackson,APAC
+CUST-020,NorthStar Logistics,Platinum/VIP,10,7699478.27,Carla Gray,EMEA
+CUST-021,EagleWing Transport,Standard,8,747691.4,Margaret Hawkins DDS,EMEA
+CUST-022,SilkRoute Cargo,Standard,2,383238.46,Patty Perez,APAC
+CUST-023,PolarExpress Freight,Platinum/VIP,6,9011647.87,Ethan Adams,EMEA
+CUST-024,SummitAir Logistics,Standard,6,930508.9,Tommy Walter,Americas
+CUST-025,BayFreight International,Gold,9,2258711.52,Matthew Foster,APAC
+CUST-026,CrossContinental Cargo,Gold,9,2582527.6,Judy Baker,APAC
+CUST-027,HorizonAir Logistics,Standard,3,314297.27,Justin Baker,EMEA
+CUST-028,MeridianFreight Corp,Platinum/VIP,10,12449889.82,Stephanie Ross,APAC
+CUST-029,ZenithCargo Solutions,Platinum/VIP,9,12470138.12,Zachary Hicks,Americas
+CUST-030,ApexAir Transport,Standard,3,519520.4,Anthony Rodriguez,EMEA

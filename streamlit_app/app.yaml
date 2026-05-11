@@ -1,0 +1,30 @@
+command:
+  - streamlit
+  - run
+  - app.py
+  - --server.port=8000
+  - --server.address=0.0.0.0
+
+env:
+  - name: DATABRICKS_HOST
+    value: "https://fevm-serverless-stable-3n0ihb.cloud.databricks.com"
+  - name: GENIE_SPACE_ID
+    value: ""
+  - name: WAREHOUSE_ID
+    value: "b868e84cedeb4262"
+  - name: CATALOG
+    value: "serverless_stable_3n0ihb_catalog"
+  - name: SCHEMA
+    value: "msc_air_cargo"
+  - name: LLM_ENDPOINT
+    value: "databricks-claude-sonnet-4"
+
+resources:
+  - name: sql-warehouse
+    sql_warehouse:
+      id: b868e84cedeb4262
+      permission: CAN_USE
+  - name: serving-endpoint
+    serving_endpoint:
+      name: databricks-claude-sonnet-4
+      permission: CAN_QUERY

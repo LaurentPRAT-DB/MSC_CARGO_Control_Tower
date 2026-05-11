@@ -1,0 +1,153 @@
+AWB_Number,Flight_ID,Customer_ID,Commodity_Type,Revenue_Generated_USD,Weight_KG,Tracking_Status,Critical_Revenue_Flag,Priority_Level,Origin_City,Destination_City
+618-38716269,MSC-821,CUST-018,General Cargo,24453.54,367.9,Manifested,False,Priority,Tokyo,Seoul
+618-12621534,MSC-826,CUST-015,Pharma,40637.54,4290.8,Delivered,False,Standard,Milan,Tokyo
+618-66240084,MSC-848,CUST-016,General Cargo,20829.15,2714.2,Manifested,False,Standard,Shanghai,Chicago
+618-13895645,MSC-847,CUST-020,Dangerous Goods,117716.75,1974.8,Manifested,True,Critical,Seoul,Frankfurt
+618-81688860,MSC-842,CUST-013,Doc Charter / High-Yield,407554.85,183.5,Uplifted,True,Critical,Dubai,Singapore
+618-71968116,MSC-825,CUST-022,General Cargo,33923.73,949.6,Manifested,False,Standard,Seoul,Shanghai
+618-43859311,MSC-816,CUST-007,Pharma,381818.69,4182.8,Arrived,True,Critical,London,Shanghai
+618-97477029,MSC-830,CUST-028,General Cargo,197139.05,249.3,Booked,True,Critical,Singapore,Seoul
+618-99853245,MSC-801,CUST-007,Dangerous Goods,138192.64,616.2,Delivered,True,Critical,New York,Seoul
+618-31980274,MSC-813,CUST-009,Doc Charter / High-Yield,256813.58,4825.4,Uplifted,True,Critical,Doha,Frankfurt
+618-63238057,MSC-806,CUST-030,General Cargo,35480.63,4710.3,Manifested,False,Standard,Chicago,Seoul
+618-90585882,MSC-812,CUST-029,Dangerous Goods,103309.89,4037.4,Manifested,True,Critical,London,New York
+618-11698142,MSC-836,CUST-012,Pharma,74331.96,4255.4,Manifested,False,Standard,Dubai,New York
+618-33640702,MSC-831,CUST-020,Perishables,276442.37,3682.3,Arrived,True,Critical,Frankfurt,New York
+618-42949803,MSC-841,CUST-028,Doc Charter / High-Yield,1395911.89,4162.1,Uplifted,True,Critical,Chicago,London
+618-55150390,MSC-805,CUST-023,General Cargo,156809.86,192.1,Arrived,True,Critical,Tokyo,Singapore
+618-84597009,MSC-820,CUST-017,Pharma,233438.91,100.2,Uplifted,True,Critical,Chicago,London
+618-75876924,MSC-812,CUST-029,Pharma,371907.17,2268.5,Uplifted,True,Critical,London,New York
+618-67110154,MSC-801,CUST-017,Pharma,275974.81,4983.3,Delivered,True,Critical,New York,Seoul
+618-26046365,MSC-835,CUST-023,Pharma,268735.22,3727.3,Uplifted,True,Critical,Chicago,Dubai
+618-90099897,MSC-848,CUST-007,General Cargo,177421.12,1450.8,Uplifted,True,Critical,Shanghai,Chicago
+618-81690398,MSC-806,CUST-010,General Cargo,13074.87,676.6,Uplifted,False,Standard,Chicago,Seoul
+618-23769080,MSC-802,CUST-018,General Cargo,116658.98,4370.0,Arrived,True,Critical,Shanghai,Frankfurt
+618-25312516,MSC-836,CUST-023,Pharma,168114.41,4119.5,Manifested,True,Critical,Dubai,New York
+618-85543051,MSC-825,CUST-019,Perishables,7412.41,4748.2,Manifested,False,Standard,Seoul,Shanghai
+618-93002706,MSC-805,CUST-004,Perishables,23727.83,1167.2,Delivered,False,Standard,Tokyo,Singapore
+618-86320155,MSC-833,CUST-030,Pharma,173958.58,3124.1,Delivered,True,Critical,Frankfurt,Chicago
+618-45520201,MSC-839,CUST-004,Live Animals,14350.46,3319.1,Arrived,False,Standard,Shanghai,Doha
+618-49092160,MSC-810,CUST-028,General Cargo,26895.04,211.6,Delivered,False,Priority,Seoul,Frankfurt
+618-93893865,MSC-818,CUST-023,Dangerous Goods,34183.25,2969.5,Uplifted,False,Priority,Dubai,Chicago
+618-19584466,MSC-812,CUST-018,General Cargo,22220.44,345.2,Booked,False,Priority,London,New York
+618-72907576,MSC-819,CUST-027,Perishables,17987.48,3459.0,Booked,False,Standard,Shanghai,Hong Kong
+618-53261270,MSC-844,CUST-009,Pharma,91748.4,3038.4,Delivered,False,Priority,Dubai,Tokyo
+618-87342561,MSC-801,CUST-029,Dangerous Goods,239472.11,249.1,Delivered,True,Critical,New York,Seoul
+618-68503492,MSC-848,CUST-028,Perishables,180614.94,3192.2,Uplifted,True,Critical,Shanghai,Chicago
+618-31585546,MSC-831,CUST-016,General Cargo,19998.88,1682.5,Booked,False,Standard,Frankfurt,New York
+618-71045700,MSC-844,CUST-022,Live Animals,41610.47,485.9,Arrived,False,Standard,Dubai,Tokyo
+618-72005415,MSC-816,CUST-025,Pharma,278383.2,2095.6,Delivered,True,Critical,London,Shanghai
+618-27584297,MSC-812,CUST-020,Doc Charter / High-Yield,1176753.83,4642.0,Uplifted,True,Critical,London,New York
+618-42117961,MSC-828,CUST-016,General Cargo,48791.61,3563.4,Delivered,False,Standard,New York,Dubai
+618-96934122,MSC-819,CUST-018,Pharma,92951.03,4169.1,Booked,False,Priority,Shanghai,Hong Kong
+618-42713008,MSC-831,CUST-010,Pharma,63496.57,2311.1,Arrived,False,Standard,Frankfurt,New York
+618-19369750,MSC-809,CUST-030,Perishables,38583.16,1417.4,Booked,False,Standard,Chicago,Dubai
+618-87835998,MSC-826,CUST-026,Pharma,209519.41,4994.6,Delivered,True,Critical,Milan,Tokyo
+618-60628276,MSC-831,CUST-015,Pharma,63723.52,2304.0,Delivered,False,Standard,Frankfurt,New York
+618-15858241,MSC-820,CUST-023,General Cargo,161862.69,1625.0,Arrived,True,Critical,Chicago,London
+618-76481885,MSC-830,CUST-026,Pharma,439528.82,4825.9,Manifested,True,Critical,Singapore,Seoul
+618-23383077,MSC-808,CUST-019,General Cargo,9516.41,2653.5,Manifested,False,Standard,Doha,Chicago
+618-55440919,MSC-829,CUST-017,Pharma,382055.5,3135.1,Delivered,True,Critical,London,Tokyo
+618-94127561,MSC-825,CUST-028,General Cargo,200345.57,3607.7,Uplifted,True,Critical,Seoul,Shanghai
+618-40532691,MSC-848,CUST-018,General Cargo,19767.06,3746.5,Manifested,False,Priority,Shanghai,Chicago
+618-13885234,MSC-827,CUST-025,Perishables,95858.95,277.7,Delivered,False,Priority,Seoul,Dubai
+618-32814819,MSC-803,CUST-020,Pharma,272141.85,916.6,Manifested,True,Critical,London,Frankfurt
+618-71894493,MSC-839,CUST-020,Perishables,162063.1,3207.6,Arrived,True,Critical,Shanghai,Doha
+618-19913576,MSC-829,CUST-007,Dangerous Goods,115109.83,2236.6,Arrived,True,Critical,London,Tokyo
+618-71315464,MSC-822,CUST-010,Perishables,24093.9,4234.3,Delivered,False,Standard,New York,Hong Kong
+618-49625201,MSC-812,CUST-028,Pharma,289277.47,158.6,Uplifted,True,Critical,London,New York
+618-16582607,MSC-842,CUST-001,Perishables,35860.98,4557.6,Uplifted,False,Standard,Dubai,Singapore
+618-39394291,MSC-847,CUST-029,Dangerous Goods,165643.25,3201.3,Manifested,True,Critical,Seoul,Frankfurt
+618-51464269,MSC-839,CUST-029,Doc Charter / High-Yield,601692.85,3953.6,Arrived,True,Critical,Shanghai,Doha
+618-65767881,MSC-802,CUST-024,General Cargo,45933.25,919.4,Uplifted,False,Standard,Shanghai,Frankfurt
+618-44489940,MSC-808,CUST-029,Live Animals,218610.76,4574.5,Booked,True,Critical,Doha,Chicago
+618-28892086,MSC-830,CUST-010,Doc Charter / High-Yield,94956.47,3783.0,Booked,False,Standard,Singapore,Seoul
+618-59093496,MSC-814,CUST-024,Perishables,22883.52,497.0,Uplifted,False,Standard,Shanghai,London
+618-88458327,MSC-825,CUST-028,General Cargo,145601.21,1936.1,Uplifted,True,Critical,Seoul,Shanghai
+618-85350823,MSC-840,CUST-004,Perishables,26216.46,1673.6,Delivered,False,Standard,Seoul,Milan
+618-25659979,MSC-839,CUST-007,Perishables,168437.7,741.9,Delivered,True,Critical,Shanghai,Doha
+618-28208520,MSC-802,CUST-016,General Cargo,15566.0,1973.8,Delivered,False,Standard,Shanghai,Frankfurt
+618-30739712,MSC-823,CUST-024,Perishables,29308.66,4432.8,Uplifted,False,Standard,Tokyo,Seoul
+618-39161443,MSC-841,CUST-023,Perishables,207871.11,2244.7,Uplifted,True,Critical,Chicago,London
+618-18126895,MSC-815,CUST-004,Live Animals,21530.07,2020.8,Delivered,False,Standard,Shanghai,Milan
+618-90147573,MSC-812,CUST-028,Dangerous Goods,37053.56,4856.9,Uplifted,False,Priority,London,New York
+618-37804191,MSC-803,CUST-008,Live Animals,73060.79,2952.6,Delivered,False,Priority,London,Frankfurt
+618-27447248,MSC-814,CUST-005,Doc Charter / High-Yield,180212.63,2724.1,Booked,True,Critical,Shanghai,London
+618-12118101,MSC-811,CUST-007,General Cargo,146624.64,912.5,Manifested,True,Critical,Dubai,Doha
+618-89680504,MSC-803,CUST-023,Pharma,737780.98,589.8,Delivered,True,Critical,London,Frankfurt
+618-71477426,MSC-832,CUST-028,General Cargo,295194.81,3234.5,Delivered,True,Critical,New York,Seoul
+618-19863756,MSC-801,CUST-023,Dangerous Goods,85600.77,4501.4,Delivered,False,Priority,New York,Seoul
+618-61124122,MSC-820,CUST-003,General Cargo,78699.77,4973.4,Uplifted,False,Priority,Chicago,London
+618-67723010,MSC-833,CUST-028,Perishables,61593.89,2285.2,Arrived,False,Priority,Frankfurt,Chicago
+618-51946203,MSC-814,CUST-027,Pharma,51949.85,3342.3,Manifested,False,Standard,Shanghai,London
+618-22513132,MSC-823,CUST-022,Live Animals,8021.0,2187.8,Booked,False,Standard,Tokyo,Seoul
+618-99927658,MSC-847,CUST-026,General Cargo,22596.5,655.0,Manifested,False,Priority,Seoul,Frankfurt
+618-57197152,MSC-822,CUST-025,Pharma,187699.44,562.8,Delivered,True,Critical,New York,Hong Kong
+618-47388792,MSC-832,CUST-029,Pharma,637694.03,2891.8,Arrived,True,Critical,New York,Seoul
+618-91737913,MSC-827,CUST-025,Dangerous Goods,80354.59,4649.0,Arrived,False,Priority,Seoul,Dubai
+618-10819505,MSC-844,CUST-017,General Cargo,299046.24,948.0,Delivered,True,Critical,Dubai,Tokyo
+618-22315507,MSC-809,CUST-013,General Cargo,38343.61,3743.3,Booked,False,Standard,Chicago,Dubai
+618-86181117,MSC-813,CUST-015,General Cargo,21652.39,3001.3,Manifested,False,Standard,Doha,Frankfurt
+618-75184410,MSC-803,CUST-028,General Cargo,45225.04,3055.0,Arrived,False,Priority,London,Frankfurt
+618-75314742,MSC-826,CUST-028,General Cargo,107518.09,2658.3,Delivered,True,Critical,Milan,Tokyo
+618-28419343,MSC-819,CUST-023,Live Animals,30025.85,3832.6,Manifested,False,Priority,Shanghai,Hong Kong
+618-40884937,MSC-818,CUST-001,Pharma,55057.91,2526.3,Delivered,False,Standard,Dubai,Chicago
+618-52018286,MSC-842,CUST-003,Pharma,241468.79,2900.0,Booked,True,Critical,Dubai,Singapore
+618-33068427,MSC-836,CUST-021,Pharma,20790.36,4016.5,Manifested,False,Standard,Dubai,New York
+618-68475513,MSC-839,CUST-023,Dangerous Goods,64755.11,2964.9,Arrived,False,Priority,Shanghai,Doha
+618-81216573,MSC-833,CUST-020,Doc Charter / High-Yield,460237.19,2574.3,Arrived,True,Critical,Frankfurt,Chicago
+618-41711468,MSC-849,CUST-024,Live Animals,34044.93,558.9,Uplifted,False,Standard,Doha,Shanghai
+618-72270726,MSC-816,CUST-028,General Cargo,132240.44,3784.5,Arrived,True,Critical,London,Shanghai
+618-93821894,MSC-848,CUST-022,Live Animals,30402.13,1649.9,Uplifted,False,Standard,Shanghai,Chicago
+618-46866075,MSC-840,CUST-015,General Cargo,24899.36,2977.5,Uplifted,False,Standard,Seoul,Milan
+618-20298660,MSC-822,CUST-010,Pharma,18320.08,3241.1,Delivered,False,Standard,New York,Hong Kong
+618-70362235,MSC-805,CUST-017,Pharma,840935.92,4549.8,Booked,True,Critical,Tokyo,Singapore
+618-23891786,MSC-836,CUST-011,Perishables,80936.73,4064.3,Manifested,False,Priority,Dubai,New York
+618-80339290,MSC-821,CUST-003,Pharma,68700.28,2637.6,Arrived,False,Priority,Tokyo,Seoul
+618-90246882,MSC-810,CUST-030,General Cargo,23394.62,309.2,Delivered,False,Standard,Seoul,Frankfurt
+618-98122539,MSC-840,CUST-003,General Cargo,62620.73,4823.8,Uplifted,False,Priority,Seoul,Milan
+618-98054173,MSC-838,CUST-011,General Cargo,100233.99,3507.5,Manifested,True,Critical,Shanghai,Milan
+618-27152188,MSC-825,CUST-029,Live Animals,92448.48,3367.1,Uplifted,False,Priority,Seoul,Shanghai
+618-12446861,MSC-847,CUST-030,Pharma,96994.09,1844.9,Manifested,False,Standard,Seoul,Frankfurt
+618-30796389,MSC-811,CUST-011,Live Animals,49458.25,432.0,Uplifted,False,Priority,Dubai,Doha
+618-92950779,MSC-806,CUST-018,Dangerous Goods,69683.24,698.7,Manifested,False,Priority,Chicago,Seoul
+618-68743530,MSC-824,CUST-017,Dangerous Goods,279690.96,266.3,Booked,True,Critical,Chicago,New York
+618-41407343,MSC-823,CUST-008,Live Animals,85368.07,2693.4,Manifested,False,Priority,Tokyo,Seoul
+618-71965637,MSC-819,CUST-026,Pharma,340218.99,3858.7,Arrived,True,Critical,Shanghai,Hong Kong
+618-17003454,MSC-849,CUST-017,Pharma,157744.49,3223.8,Manifested,True,Critical,Doha,Shanghai
+618-31516757,MSC-823,CUST-004,Doc Charter / High-Yield,133971.08,1400.3,Booked,True,Critical,Tokyo,Seoul
+618-13579612,MSC-832,CUST-023,General Cargo,325648.53,2103.7,Delivered,True,Critical,New York,Seoul
+618-97236246,MSC-825,CUST-008,Pharma,42011.32,1709.7,Booked,False,Priority,Seoul,Shanghai
+618-72962895,MSC-809,CUST-020,Dangerous Goods,187908.18,2270.6,Uplifted,True,Critical,Chicago,Dubai
+618-91722503,MSC-800,CUST-001,General Cargo,42573.34,2662.5,Delivered,False,Standard,Shanghai,London
+618-71352751,MSC-807,CUST-008,General Cargo,15224.91,360.9,Uplifted,False,Priority,London,Tokyo
+618-49093864,MSC-831,CUST-001,Perishables,30877.14,2174.7,Manifested,False,Standard,Frankfurt,New York
+618-19083764,MSC-839,CUST-019,Pharma,75768.71,4769.3,Delivered,False,Standard,Shanghai,Doha
+618-60103798,MSC-834,CUST-017,Perishables,120766.98,1305.6,Arrived,True,Critical,Doha,Milan
+618-27905932,MSC-801,CUST-003,General Cargo,92767.53,269.5,Delivered,False,Priority,New York,Seoul
+618-74227366,MSC-834,CUST-021,General Cargo,40061.42,3177.1,Arrived,False,Standard,Doha,Milan
+618-52358553,MSC-808,CUST-023,General Cargo,97875.63,4670.2,Booked,False,Priority,Doha,Chicago
+618-48401154,MSC-832,CUST-027,Pharma,57504.85,1817.0,Arrived,False,Standard,New York,Seoul
+618-69020451,MSC-849,CUST-029,General Cargo,51311.67,4478.5,Manifested,False,Priority,Doha,Shanghai
+618-66975380,MSC-824,CUST-006,Pharma,240216.1,440.7,Booked,True,Critical,Chicago,New York
+618-69849800,MSC-838,CUST-006,Pharma,104698.78,3033.0,Manifested,True,Critical,Shanghai,Milan
+618-46850196,MSC-827,CUST-023,Pharma,137312.51,3215.4,Delivered,True,Critical,Seoul,Dubai
+618-29163535,MSC-803,CUST-029,Pharma,439833.45,4250.9,Booked,True,Critical,London,Frankfurt
+618-61385847,MSC-843,CUST-002,General Cargo,38545.65,4749.9,Delivered,False,Priority,Seoul,Chicago
+618-87030477,MSC-802,CUST-022,Pharma,62647.91,731.6,Booked,False,Standard,Shanghai,Frankfurt
+618-34970946,MSC-823,CUST-021,General Cargo,48223.4,2520.3,Booked,False,Standard,Tokyo,Seoul
+618-38799154,MSC-824,CUST-004,General Cargo,16713.04,4982.0,Manifested,False,Standard,Chicago,New York
+618-70672142,MSC-818,CUST-016,General Cargo,11107.78,904.6,Booked,False,Standard,Dubai,Chicago
+618-18715975,MSC-845,CUST-003,Dangerous Goods,144643.26,2772.5,Delivered,True,Critical,Chicago,Dubai
+618-58518659,MSC-818,CUST-028,General Cargo,240087.89,2568.3,Manifested,True,Critical,Dubai,Chicago
+618-86809773,MSC-807,CUST-026,General Cargo,62449.57,1876.1,Uplifted,False,Priority,London,Tokyo
+618-80557676,MSC-835,CUST-007,General Cargo,150902.15,2083.4,Arrived,True,Critical,Chicago,Dubai
+618-79438885,MSC-826,CUST-003,General Cargo,31042.69,1755.3,Arrived,False,Priority,Milan,Tokyo
+618-77493234,MSC-849,CUST-019,General Cargo,48481.91,4558.0,Manifested,False,Standard,Doha,Shanghai
+618-56442431,MSC-803,CUST-017,General Cargo,57249.11,4740.0,Manifested,False,Priority,London,Frankfurt
+618-26800072,MSC-833,CUST-028,General Cargo,107649.62,3143.9,Delivered,True,Critical,Frankfurt,Chicago
+618-98413629,MSC-839,CUST-017,Perishables,186727.39,3141.2,Arrived,True,Critical,Shanghai,Doha
+618-20901547,MSC-838,CUST-030,Perishables,42135.63,275.0,Uplifted,False,Standard,Shanghai,Milan
+618-76845536,MSC-841,CUST-009,Perishables,83960.72,4450.5,Booked,False,Priority,Chicago,London
+618-99000001,MSC-807,CUST-007,Doc Charter / High-Yield,520000.0,2800.0,Manifested,True,Critical,London,Tokyo
+618-99000002,MSC-815,CUST-002,Pharma,380000.0,1500.0,Uplifted,True,Critical,Shanghai,Milan
