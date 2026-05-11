@@ -1,10 +1,13 @@
 import os
+
+os.environ.setdefault("HOME", "/tmp")
+
 import time
 import json
 import requests
 import streamlit as st
 import pandas as pd
-from databricks.sdk.core import Config
+from databricks.sdk import WorkspaceClient
 
 st.set_page_config(
     page_title="MSC Air Cargo — Control Tower",
@@ -339,12 +342,17 @@ st.markdown("""
 
 
 # --- Backend Functions ---
+@st.cache_resource
+def get_workspace_client():
+    return WorkspaceClient()
+
+
 def get_auth():
-    cfg = Config()
-    host = DATABRICKS_HOST or cfg.host
+    w = get_workspace_client()
+    host = w.config.host
     if host and not host.startswith("http"):
         host = f"https://{host}"
-    headers = cfg.authenticate()
+    headers = w.config.authenticate()
     return host, headers
 
 
