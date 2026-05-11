@@ -1239,20 +1239,9 @@ elif current_page == "Priority":
             rev_fmt = f"${float(rev):,.0f}" if rev else "$0"
             tag_color = "red" if status == "Delayed" else "green" if status == "On-Time" else "blue"
 
-            st.markdown(f"""
-            <div class="activity-item">
-                <div>
-                    <div class="activity-item-title">{flight_id}: {origin} → {dest}</div>
-                    <div class="activity-item-desc">{ships} shipments · {rev_fmt} revenue</div>
-                    <span class="activity-tag {tag_color}">{status}</span>
-                    {"<span class='activity-tag red'>+" + str(delay_int) + "min</span>" if delay_int > 0 else ""}
-                </div>
-                <div class="activity-item-stat">
-                    <div class="activity-item-stat-value">{delay_int}m</div>
-                    <div class="activity-item-stat-label">delay</div>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+            delay_badge = f"<span class='activity-tag red'>+{delay_int}min</span>" if delay_int > 0 else ""
+            delay_stat = f'<div class="activity-item-stat"><div class="activity-item-stat-value">{delay_int}m</div><div class="activity-item-stat-label">delay</div></div>' if delay_int > 0 else ""
+            st.markdown(f'<div class="activity-item"><div><div class="activity-item-title">{flight_id}: {origin} → {dest}</div><div class="activity-item-desc">{ships} shipments · {rev_fmt} revenue</div><span class="activity-tag {tag_color}">{status}</span>{delay_badge}</div>{delay_stat}</div>', unsafe_allow_html=True)
     else:
         st.info("No sentiment-watched flights found.")
 
