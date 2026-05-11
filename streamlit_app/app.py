@@ -782,6 +782,113 @@ elif current_page == "Flight Ops":
         with stat_cols[3]:
             protected = len(df[df["Schedule_Protection_Flag"] == "true"])
             st.metric("Protected", protected)
+
+        # --- Map Visualizations ---
+        import pydeck as pdk
+
+        CITY_COORDS = {
+            "Chicago": (41.978, -87.904), "Doha": (25.261, 51.565),
+            "Dubai": (25.253, 55.366), "Frankfurt": (50.033, 8.571),
+            "Hong Kong": (22.309, 113.915), "London": (51.470, -0.454),
+            "Milan": (45.630, 8.723), "New York": (40.640, -73.779),
+            "Seoul": (37.460, 126.440), "Shanghai": (31.143, 121.805),
+            "Singapore": (1.350, 103.994), "Tokyo": (35.764, 140.386),
+        }
+
+        STATUS_COLORS = {
+            "Delayed": [255, 80, 80],
+            "In-Air": [80, 180, 255],
+            "On-Time": [80, 220, 120],
+            "Delivered": [160, 160, 160],
+        }
+
+        map_df = df.copy()
+        map_df["origin_lat"] = map_df["Origin_City"].map(lambda c: CITY_COORDS.get(c, (0, 0))[0])
+        map_df["origin_lon"] = map_df["Origin_City"].map(lambda c: CITY_COORDS.get(c, (0, 0))[1])
+        map_df["dest_lat"] = map_df["Destination_City"].map(lambda c: CITY_COORDS.get(c, (0, 0))[0])
+        map_df["dest_lon"] = map_df["Destination_City"].map(lambda c: CITY_COORDS.get(c, (0, 0))[1])
+        map_df["color"] = map_df["Flight_Status"].map(lambda s: STATUS_COLORS.get(s, [200, 200, 200]))
+
+        valid_map = map_df[(map_df["origin_lat"] != 0) & (map_df["dest_lat"] != 0)]
+
+        if not valid_map.empty:
+            st.markdown("<div style='height:24px'></div>", unsafe_allow_html=True)
+            st.markdown("#### ✈️ Flight Route Map")
+            st.caption("Routes color-coded by status — 🔴 Delayed · 🔵 In-Air · 🟢 On-Time · ⚪ Delivered")
+
+            arc_layer = pdk.Layer(
+                "ArcLayer",
+                data=valid_map,
+                get_source_position=["origin_lon", "origin_lat"],
+                get_target_position=["dest_lon", "dest_lat"],
+                get_source_color="color",
+                get_target_color="color",
+                get_width=2,
+                get_height=0.3,
+                pickable=True,
+            )
+
+            scatter_data = []
+            for _, row in valid_map.iterrows():
+                scatter_data.append({"lat": row["origin_lat"], "lon": row["origin_lon"],
+                                     "city": row["Origin_City"], "color": row["color"]})
+                scatter_data.append({"lat": row["dest_lat"], "lon": row["dest_lon"],
+                                     "city": row["Destination_City"], "color": row["color"]})
+            scatter_df = pd.DataFrame(scatter_data).drop_duplicates(subset=["city"])
+
+            scatter_layer = pdk.Layer(
+                "ScatterplotLayer",
+                data=scatter_df,
+                get_position=["lon", "lat"],
+                get_fill_color=[30, 144, 255, 200],
+                get_radius=60000,
+                pickable=True,
+            )
+
+            st.pydeck_chart(pdk.Deck(
+                layers=[arc_layer, scatter_layer],
+                initial_view_state=pdk.ViewState(latitude=30, longitude=30, zoom=1.3, pitch=30),
+                map_style="mapbox://styles/mapbox/dark-v11",
+            ), use_container_width=True)
+
+            # --- Delay Heatmap ---
+            st.markdown("<div style='height:24px'></div>", unsafe_allow_html=True)
+            st.markdown("#### 🌡️ Delay & Service Degradation Heatmap")
+            st.caption("Intensity weighted by delay minutes — hotspots indicate operational stress regions")
+
+            heat_points = []
+            for _, row in valid_map.iterrows():
+                weight = max(float(row["Delay_Minutes"]), 10) if row["Flight_Status"] == "Delayed" else 0
+                if weight > 0:
+                    heat_points.append({"lat": row["origin_lat"], "lon": row["origin_lon"], "weight": weight})
+                    heat_points.append({"lat": row["dest_lat"], "lon": row["dest_lon"], "weight": weight})
+
+            if heat_points:
+                heat_df = pd.DataFrame(heat_points)
+                heat_df = heat_df.groupby(["lat", "lon"], as_index=False)["weight"].sum()
+
+                heatmap_layer = pdk.Layer(
+                    "HeatmapLayer",
+                    data=heat_df,
+                    get_position=["lon", "lat"],
+                    get_weight="weight",
+                    radius_pixels=80,
+                    intensity=1,
+                    threshold=0.1,
+                    color_range=[
+                        [255, 255, 178], [254, 204, 92], [253, 141, 60],
+                        [240, 59, 32], [189, 0, 38],
+                    ],
+                )
+
+                st.pydeck_chart(pdk.Deck(
+                    layers=[heatmap_layer],
+                    initial_view_state=pdk.ViewState(latitude=30, longitude=30, zoom=1.1, pitch=0),
+                    map_style="mapbox://styles/mapbox/dark-v11",
+                ), use_container_width=True)
+            else:
+                st.info("No delays in current filter — heatmap not applicable.")
+
     else:
         st.info("No flights match the current filters or data unavailable.")
 

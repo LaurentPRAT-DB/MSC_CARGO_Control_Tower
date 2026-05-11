@@ -7,11 +7,11 @@ command:
 
 env:
   - name: GENIE_SPACE_ID
-    value: "01f14d4a2d0513e59c33cccb72a97a47"
+    value: "01f14d4f205e1e8dac116814dbf0264f"
   - name: WAREHOUSE_ID
-    value: "e9b34f7a2e4b0561"
+    value: "b868e84cedeb4262"
   - name: CATALOG
-    value: "laurent_prat_entity_matching_dev"
+    value: "serverless_stable_3n0ihb_catalog"
   - name: SCHEMA
     value: "msc_air_cargo"
   - name: LLM_ENDPOINT
@@ -20,7 +20,7 @@ env:
 resources:
   - name: sql-warehouse
     sql_warehouse:
-      id: e9b34f7a2e4b0561
+      id: b868e84cedeb4262
       permission: CAN_USE
   - name: serving-endpoint
     serving_endpoint:
