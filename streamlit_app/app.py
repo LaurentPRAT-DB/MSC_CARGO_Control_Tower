@@ -309,18 +309,20 @@ st.markdown("""
     }
 
     div[data-testid="stHorizontalBlock"] button[kind="secondary"] {
-        background: transparent !important;
-        border: none !important;
-        border-bottom: 2px solid transparent !important;
-        border-radius: 0 !important;
-        color: #e2e8f0 !important;
+        background: #1e293b !important;
+        border: 1px solid #334155 !important;
+        border-radius: 8px !important;
+        color: #93c5fd !important;
         font-weight: 500;
     }
+    div[data-testid="stHorizontalBlock"] button[kind="secondary"]:hover {
+        background: #334155 !important;
+        color: #bfdbfe !important;
+    }
     div[data-testid="stHorizontalBlock"] button[kind="primary"] {
-        background: transparent !important;
-        border: none !important;
-        border-bottom: 2px solid #93c5fd !important;
-        border-radius: 0 !important;
+        background: #1e3a5f !important;
+        border: 1px solid #3b82f6 !important;
+        border-radius: 8px !important;
         color: #ffffff !important;
         font-weight: 600;
     }
@@ -621,7 +623,7 @@ if current_page == "Home":
         ORDER BY s.Revenue_Generated_USD DESC LIMIT 3
     """
     crisis_rows = execute_sql(crisis_sql)
-    for row in crisis_rows:
+    for idx, row in enumerate(crisis_rows):
         flight_id, origin, dest, delay, company, tier, revenue, commodity = row
         rev_fmt = f"${float(revenue):,.0f}" if revenue else "$0"
         st.markdown(f"""
@@ -634,6 +636,9 @@ if current_page == "Home":
             <div class="alert-meta">Action: Escalate to ops manager · Notify customer account team</div>
         </div>
         """, unsafe_allow_html=True)
+        if st.button("View details →", key=f"crisis_nav_{idx}", type="secondary"):
+            st.session_state.current_page = "Priority"
+            st.rerun()
 
     # Protected flight alerts
     protected_sql = f"""
@@ -643,7 +648,7 @@ if current_page == "Home":
         ORDER BY f.Delay_Minutes DESC LIMIT 2
     """
     protected_rows = execute_sql(protected_sql)
-    for row in protected_rows:
+    for idx, row in enumerate(protected_rows):
         flight_id, origin, dest, delay, status = row
         st.markdown(f"""
         <div class="alert-card warning">
@@ -655,6 +660,9 @@ if current_page == "Home":
             <div class="alert-meta">Action: Coordinate with ground handling · Check connection cargo</div>
         </div>
         """, unsafe_allow_html=True)
+        if st.button("View details →", key=f"protected_nav_{idx}", type="secondary"):
+            st.session_state.current_page = "Priority"
+            st.rerun()
 
     if not crisis_rows and not protected_rows:
         st.info("No critical alerts at this time.")
@@ -766,24 +774,8 @@ elif current_page == "Flight Ops":
         for col in ["Delay_Minutes", "Capacity_Tons"]:
             if col in df.columns:
                 df[col] = pd.to_numeric(df[col], errors="coerce")
-        st.dataframe(df, use_container_width=True, hide_index=True)
 
-        # Summary stats
-        st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
-        stat_cols = st.columns(4)
-        with stat_cols[0]:
-            st.metric("Total Shown", len(df))
-        with stat_cols[1]:
-            delayed = len(df[df["Flight_Status"] == "Delayed"])
-            st.metric("Delayed", delayed)
-        with stat_cols[2]:
-            avg_delay = df[df["Delay_Minutes"] > 0]["Delay_Minutes"].mean()
-            st.metric("Avg Delay (min)", f"{avg_delay:.0f}" if pd.notna(avg_delay) else "0")
-        with stat_cols[3]:
-            protected = len(df[df["Schedule_Protection_Flag"] == "true"])
-            st.metric("Protected", protected)
-
-        # --- Map Visualizations ---
+        # --- Map Visualizations (shown first) ---
         import pydeck as pdk
 
         CITY_COORDS = {
@@ -888,6 +880,26 @@ elif current_page == "Flight Ops":
                 ), use_container_width=True)
             else:
                 st.info("No delays in current filter — heatmap not applicable.")
+
+        # --- Data Table ---
+        st.markdown("<div style='height:24px'></div>", unsafe_allow_html=True)
+        st.markdown("#### 📋 Flight Details")
+        st.dataframe(df, use_container_width=True, hide_index=True)
+
+        # Summary stats
+        st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+        stat_cols = st.columns(4)
+        with stat_cols[0]:
+            st.metric("Total Shown", len(df))
+        with stat_cols[1]:
+            delayed_count = len(df[df["Flight_Status"] == "Delayed"])
+            st.metric("Delayed", delayed_count)
+        with stat_cols[2]:
+            avg_delay = df[df["Delay_Minutes"] > 0]["Delay_Minutes"].mean()
+            st.metric("Avg Delay (min)", f"{avg_delay:.0f}" if pd.notna(avg_delay) else "0")
+        with stat_cols[3]:
+            protected_count = len(df[df["Schedule_Protection_Flag"] == "true"])
+            st.metric("Protected", protected_count)
 
         # --- LLM Operations Advisor ---
         st.markdown("<div style='height:24px'></div>", unsafe_allow_html=True)
@@ -1176,6 +1188,30 @@ elif current_page == "Priority":
                 </div>
             </div>
             """, unsafe_allow_html=True)
+
+        # AI recommended actions for the top crisis
+        top = vip_rows[0]
+        top_flight_id, top_origin, top_dest, top_delay, top_status, top_company, top_tier, top_sentiment, top_awb, top_commodity, top_revenue = top
+        top_rev_fmt = f"${float(top_revenue):,.0f}" if top_revenue else "$0"
+
+        if st.button("🚨 Get AI Recommended Actions for Top Crisis", type="primary", use_container_width=True):
+            crisis_prompt = f"""You are an MSC Air Cargo crisis response specialist. Provide immediate, specific recommended actions for this VIP crisis:
+
+CRISIS DETAILS:
+- Flight: {top_flight_id} ({top_origin} → {top_dest}), delayed +{top_delay} minutes
+- Customer: {top_company} ({top_tier}), sentiment score: {top_sentiment}/10
+- Shipment: AWB {top_awb}, commodity: {top_commodity}, value: {top_rev_fmt}
+
+Provide exactly 5 numbered actions the ops team should take RIGHT NOW, in priority order. Each action should be:
+- Specific (name the flight, customer, or hub)
+- Actionable (who does what)
+- Time-bound (within what timeframe)
+
+Keep each action to 1-2 sentences max. Focus on protecting revenue and customer relationship."""
+
+            with st.spinner("Generating crisis response plan..."):
+                response = call_llm([{"role": "user", "content": crisis_prompt}], max_tokens=1024, temperature=0.2)
+            st.markdown(response)
     else:
         st.success("No VIP crisis scenarios active.")
 
