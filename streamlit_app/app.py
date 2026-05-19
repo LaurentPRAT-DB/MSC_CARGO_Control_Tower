@@ -10,8 +10,8 @@ import streamlit as st
 import pandas as pd
 from databricks.sdk import WorkspaceClient
 
-APP_VERSION = "1.2.0"
-APP_BUILD = "20260519-1534"
+APP_VERSION = "1.2.2"
+APP_BUILD = "20260519-1800"
 
 st.set_page_config(
     page_title="MSC Air Cargo — Control Tower",
@@ -510,7 +510,7 @@ def ask_genie(question: str, conversation_id: str | None = None) -> dict:
     if not conversation_id or not msg_id:
         return {"status": "FAILED", "error": f"Missing IDs. Response: {data}"}
 
-    PENDING_STATUSES = {"EXECUTING_QUERY", "FETCHING_METADATA", "ASKING_AI", "SUBMITTED", "FILTERING", "PENDING", ""}
+    PENDING_STATUSES = {"EXECUTING_QUERY", "FETCHING_METADATA", "ASKING_AI", "SUBMITTED", "FILTERING", "FILTERING_CONTEXT", "PENDING", "PENDING_WAREHOUSE", ""}
     time.sleep(2)
     for _ in range(80):
         poll_resp = requests.get(
@@ -1297,9 +1297,8 @@ elif current_page == "Ask Genie":
                 lines = [l.strip() for l in resp.strip().split("\n") if l.strip()]
                 if lines:
                     return lines[:3]
-            st.caption(f"⚠️ Follow-up generation: {resp[:100] if resp else 'empty response'}")
-        except Exception as e:
-            st.caption(f"⚠️ Follow-up generation error: {e}")
+        except Exception:
+            pass
         return []
 
     def display_genie_result(result: dict, show_followups: bool = True):
