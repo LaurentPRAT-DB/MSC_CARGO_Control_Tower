@@ -9,6 +9,9 @@ import streamlit as st
 import pandas as pd
 from databricks.sdk import WorkspaceClient
 
+APP_VERSION = "1.1.0"
+APP_BUILD = "20260519-0945"
+
 st.set_page_config(
     page_title="MSC Air Cargo — Control Tower",
     page_icon="✈️",
@@ -308,23 +311,26 @@ st.markdown("""
         line-height: 1.5;
     }
 
-    div[data-testid="stHorizontalBlock"] button[kind="secondary"] {
+    div[data-testid="stHorizontalBlock"] button[kind="secondary"],
+    div[data-testid="stHorizontalBlock"] button[kind="primary"] {
         background: #1e293b !important;
         border: 1px solid #334155 !important;
         border-radius: 8px !important;
         color: #93c5fd !important;
         font-weight: 500;
+        min-height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
-    div[data-testid="stHorizontalBlock"] button[kind="secondary"]:hover {
+    div[data-testid="stHorizontalBlock"] button[kind="secondary"]:hover,
+    div[data-testid="stHorizontalBlock"] button[kind="primary"]:hover {
         background: #334155 !important;
         color: #bfdbfe !important;
     }
     div[data-testid="stHorizontalBlock"] button[kind="primary"] {
-        background: #1e3a5f !important;
-        border: 1px solid #3b82f6 !important;
-        border-radius: 8px !important;
+        border: 2px solid #3b82f6 !important;
         color: #ffffff !important;
-        font-weight: 600;
     }
     div[data-testid="stHorizontalBlock"] button p { color: inherit !important; }
 
@@ -806,7 +812,9 @@ elif current_page == "Flight Ops":
         if not valid_map.empty:
             st.markdown("<div style='height:24px'></div>", unsafe_allow_html=True)
             st.markdown("#### ✈️ Flight Route Map")
-            st.caption("Bright end = origin, faded end = destination — 🔴 Delayed · 🔵 In-Air · 🟢 On-Time · ⚪ Delivered")
+            st.caption("Arrowheads show flight direction — 🔴 Delayed · 🔵 In-Air · 🟢 On-Time · ⚪ Delivered")
+
+            import math
 
             arc_layer = pdk.Layer(
                 "ArcLayer",
@@ -814,11 +822,44 @@ elif current_page == "Flight Ops":
                 get_source_position=["origin_lon", "origin_lat"],
                 get_target_position=["dest_lon", "dest_lat"],
                 get_source_color="color",
-                get_target_color=[200, 200, 200, 160],
+                get_target_color="color",
                 get_width=2,
                 get_height=0.3,
-                get_tilt=15,
                 pickable=True,
+            )
+
+            # Arrowhead lines near destination (V-shape pointing toward dest)
+            arrowhead_data = []
+            for _, row in valid_map.iterrows():
+                lat1, lon1 = math.radians(row["origin_lat"]), math.radians(row["origin_lon"])
+                lat2, lon2 = math.radians(row["dest_lat"]), math.radians(row["dest_lon"])
+                dlon = lon2 - lon1
+                x = math.sin(dlon) * math.cos(lat2)
+                y = math.cos(lat1) * math.sin(lat2) - math.sin(lat1) * math.cos(lat2) * math.cos(dlon)
+                bearing = math.atan2(x, y)
+                tip_lat = row["origin_lat"] + 0.85 * (row["dest_lat"] - row["origin_lat"])
+                tip_lon = row["origin_lon"] + 0.85 * (row["dest_lon"] - row["origin_lon"])
+                offset = 3.0
+                side = 1.5
+                tail_lat = tip_lat - offset * math.cos(bearing)
+                tail_lon = tip_lon - offset * math.sin(bearing)
+                left_lat = tail_lat + side * math.cos(bearing + math.pi / 2)
+                left_lon = tail_lon + side * math.sin(bearing + math.pi / 2)
+                right_lat = tail_lat - side * math.cos(bearing + math.pi / 2)
+                right_lon = tail_lon - side * math.sin(bearing + math.pi / 2)
+                arrowhead_data.append({"start_lon": left_lon, "start_lat": left_lat,
+                                       "end_lon": tip_lon, "end_lat": tip_lat, "color": row["color"]})
+                arrowhead_data.append({"start_lon": right_lon, "start_lat": right_lat,
+                                       "end_lon": tip_lon, "end_lat": tip_lat, "color": row["color"]})
+            arrowhead_df = pd.DataFrame(arrowhead_data)
+
+            arrow_layer = pdk.Layer(
+                "LineLayer",
+                data=arrowhead_df,
+                get_source_position=["start_lon", "start_lat"],
+                get_target_position=["end_lon", "end_lat"],
+                get_color="color",
+                get_width=3,
             )
 
             scatter_data = []
@@ -839,7 +880,7 @@ elif current_page == "Flight Ops":
             )
 
             st.pydeck_chart(pdk.Deck(
-                layers=[arc_layer, scatter_layer],
+                layers=[arc_layer, arrow_layer, scatter_layer],
                 initial_view_state=pdk.ViewState(latitude=30, longitude=30, zoom=1.3, pitch=30),
                 map_style="mapbox://styles/mapbox/dark-v11",
             ), use_container_width=True)
@@ -1318,3 +1359,10 @@ Be specific and actionable. Reference flight IDs and customer names where possib
 
             response = call_llm([{"role": "user", "content": prompt}], temperature=0.3)
             st.markdown(response)
+
+# --- Footer with version ---
+st.markdown(f"""
+<div style="position:fixed; bottom:8px; right:16px; font-size:11px; color:#475569; z-index:1000;">
+    v{APP_VERSION} · build {APP_BUILD}
+</div>
+""", unsafe_allow_html=True)
