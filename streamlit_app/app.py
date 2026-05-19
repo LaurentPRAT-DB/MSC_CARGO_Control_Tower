@@ -1235,7 +1235,10 @@ elif current_page == "Ask Genie":
     <div class="section-title">Ask Genie</div>
     <div class="section-subtitle">Natural language queries on MSC Air Cargo operations data</div>
     <style>
-    .stColumn .stButton button {
+    .stColumn .stButton button,
+    div[data-testid="column"] .stButton button,
+    div[data-testid="column"] button[kind="secondary"],
+    div[data-testid="column"] [data-testid="baseButton-secondary"] {
         height: 80px !important;
         min-height: 80px !important;
         max-height: 80px !important;
@@ -1294,6 +1297,12 @@ elif current_page == "Ask Genie":
         if result.get("sql"):
             with st.expander("View SQL Query"):
                 st.code(result["sql"], language="sql")
+
+    if st.session_state.genie_conv_id:
+        if st.button("🔄 New Conversation", key="new_conv_top"):
+            st.session_state.genie_messages = []
+            st.session_state.genie_conv_id = None
+            st.rerun()
 
     for msg in st.session_state.genie_messages:
         with st.chat_message(msg["role"]):
@@ -1354,11 +1363,6 @@ elif current_page == "Ask Genie":
                     "error": result.get("error"),
                 })
 
-    if st.session_state.genie_conv_id:
-        if st.button("New Conversation"):
-            st.session_state.genie_messages = []
-            st.session_state.genie_conv_id = None
-            st.rerun()
 
 
 # ============================================================
