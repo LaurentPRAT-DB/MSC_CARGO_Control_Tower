@@ -1480,56 +1480,7 @@ Each action should be specific (name the flight, customer, or hub), actionable (
     else:
         st.info("No sentiment-watched flights found.")
 
-    st.markdown("<div style='height:24px'></div>", unsafe_allow_html=True)
 
-    # AI Recommendations
-    st.markdown("#### AI-Powered Recommendations")
-    if st.button("Generate Action Plan", type="primary"):
-        with st.spinner("Analyzing scenarios with Claude..."):
-            context_parts = []
-            if vip_rows:
-                context_parts.append(f"VIP Crisis: {len(vip_rows)} critical shipments at risk on delayed flights for Platinum customers.")
-            if protected_rows:
-                delayed_protected = [r for r in protected_rows if int(float(r[5] or 0)) > 0]
-                context_parts.append(f"Protected Schedules: {len(delayed_protected)} of {len(protected_rows)} protected flights have delays.")
-            if sentiment_rows:
-                delayed_sentiment = [r for r in sentiment_rows if r[3] == "Delayed"]
-                context_parts.append(f"Sentiment Watch: {len(delayed_sentiment)} of {len(sentiment_rows)} monitored flights are delayed.")
-
-            prompt = f"""You are an air cargo operations expert for MSC Air Cargo. Based on the current Control Tower status:
-
-{chr(10).join(context_parts)}
-
-Provide a prioritized action plan with exactly 5 actions for the ops manager. Focus on:
-1. Immediate revenue protection for VIP customers
-2. Schedule protection SLA compliance
-3. Communication strategy for monitored flights
-4. Resource reallocation recommendations
-
-Format each action as a single line starting with a bold title followed by a colon and the action details:
-**Title:** Action details here.
-
-Be specific and actionable. Reference flight IDs and customer names where possible."""
-
-            response = call_llm([{"role": "user", "content": prompt}], temperature=0.3)
-
-            st.markdown("""
-            <div class="advisory-header">Operations Action Plan</div>
-            <div class="advisory-subtitle">AI-generated priorities based on current scenario analysis</div>
-            """, unsafe_allow_html=True)
-
-            lines = [l.strip() for l in response.strip().split("\n") if l.strip()]
-            action_num = 0
-            for line in lines:
-                cleaned = re.sub(r'^\d+[\.)\]]\s*', '', line)
-                if not cleaned:
-                    continue
-                action_num += 1
-                card_html = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', cleaned)
-                color_class = "urgent" if action_num <= 2 else "warning" if action_num <= 4 else "info"
-                st.markdown(f"""<div class="advisory-section {color_class}">
-                    <div class="advisory-section-body">{card_html}</div>
-                </div>""", unsafe_allow_html=True)
 
 # --- Footer with version ---
 st.markdown(f"""
