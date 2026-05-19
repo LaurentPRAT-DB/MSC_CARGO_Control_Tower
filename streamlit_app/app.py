@@ -1344,6 +1344,12 @@ elif current_page == "Ask Genie":
                     "error": result.get("error"),
                 })
 
+    if st.session_state.genie_conv_id:
+        if st.button("🔄 New Conversation", key="new_conv_bottom"):
+            st.session_state.genie_messages = []
+            st.session_state.genie_conv_id = None
+            st.rerun()
+
     if prompt := st.chat_input("Ask about flights, shipments, customers..."):
         st.session_state.genie_messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
