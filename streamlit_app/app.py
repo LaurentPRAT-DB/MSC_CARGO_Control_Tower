@@ -10,8 +10,8 @@ import streamlit as st
 import pandas as pd
 from databricks.sdk import WorkspaceClient
 
-APP_VERSION = "1.1.0"
-APP_BUILD = "20260519-1045"
+APP_VERSION = "1.2.0"
+APP_BUILD = "20260519-1534"
 
 st.set_page_config(
     page_title="MSC Air Cargo — Control Tower",
@@ -1264,17 +1264,24 @@ elif current_page == "Ask Genie":
         st.session_state.genie_conv_id = None
 
     def generate_followup_questions(question: str, text_response: str, columns: list | None) -> list[str]:
-        context = f"Question: {question}\nAnswer: {text_response or 'Data table returned'}"
-        if columns:
-            context += f"\nData columns: {', '.join(columns)}"
-        prompt = (
-            "Based on this Q&A about air cargo operations, suggest exactly 3 short follow-up questions "
-            "the user might ask next. Each question should be different in nature (e.g., drill-down, comparison, trend). "
-            "Return ONLY the 3 questions, one per line, no numbering or bullets."
-        )
-        resp = call_llm([{"role": "system", "content": prompt}, {"role": "user", "content": context}], max_tokens=200, temperature=0.7)
-        lines = [l.strip() for l in resp.strip().split("\n") if l.strip() and not l.strip().startswith("Error")]
-        return lines[:3] if lines else []
+        try:
+            context = f"Question: {question}\nAnswer: {text_response or 'Data table returned'}"
+            if columns:
+                context += f"\nData columns: {', '.join(columns)}"
+            prompt = (
+                "Based on this Q&A about air cargo operations, suggest exactly 3 short follow-up questions "
+                "the user might ask next. Each question MUST be answerable with SQL on structured data "
+                "(flights, shipments, customers, revenue). Avoid open-ended or analytical questions. "
+                "Focus on: filtering, aggregating, comparing, or drilling into specific data points. "
+                "Return ONLY the 3 questions, one per line, no numbering or bullets."
+            )
+            resp = call_llm([{"role": "system", "content": prompt}, {"role": "user", "content": context}], max_tokens=200, temperature=0.7)
+            if resp and not resp.startswith("Error"):
+                lines = [l.strip() for l in resp.strip().split("\n") if l.strip()]
+                return lines[:3] if lines else []
+        except Exception:
+            pass
+        return []
 
     def display_genie_result(result: dict, show_followups: bool = True):
         text = result.get("text_response")
@@ -1286,7 +1293,7 @@ elif current_page == "Ask Genie":
         elif error:
             st.error(error)
         elif not has_data:
-            st.warning("No response")
+            st.info("Genie couldn't answer this question with the available data. Try rephrasing or start a **New Conversation** with a different angle.")
 
         if result.get("data") and result.get("columns"):
             df = pd.DataFrame(result["data"], columns=result["columns"])
@@ -1347,6 +1354,7 @@ elif current_page == "Ask Genie":
         suggestion_cols = st.columns(len(suggestions))
         for i, s in enumerate(suggestions):
             if suggestion_cols[i].button(s, key=f"sug_{i}", use_container_width=True):
+                st.session_state.genie_conv_id = None
                 st.session_state.genie_pending = s
                 st.rerun()
 
@@ -1375,6 +1383,13 @@ elif current_page == "Ask Genie":
                     "status": result.get("status"),
                     "followup_questions": result.get("followup_questions"),
                 })
+
+    if st.session_state.genie_messages:
+        import streamlit.components.v1 as components
+        components.html(
+            "<script>window.parent.document.querySelector('section.main').scrollTo({top: 999999, behavior: 'smooth'});</script>",
+            height=0,
+        )
 
     if st.session_state.genie_conv_id:
         if st.button("🔄 New Conversation", key="new_conv_bottom"):
