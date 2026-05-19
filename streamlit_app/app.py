@@ -1252,6 +1252,23 @@ elif current_page == "Ask Genie":
         font-size: 14px !important;
         overflow: hidden !important;
     }
+    [data-testid="stChatInput"] textarea,
+    .stChatInput textarea {
+        font-size: 16px !important;
+        color: #f1f5f9 !important;
+        font-weight: 500 !important;
+    }
+    [data-testid="stChatInput"] textarea::placeholder,
+    .stChatInput textarea::placeholder {
+        color: #94a3b8 !important;
+        font-size: 16px !important;
+        opacity: 1 !important;
+    }
+    [data-testid="stChatInput"],
+    .stChatInput {
+        border: 2px solid #475569 !important;
+        border-radius: 10px !important;
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -1581,7 +1598,7 @@ Each action should be specific (name the flight, customer, or hub), actionable (
 
 # --- Footer with version ---
 st.markdown(f"""
-<div style="position:fixed; bottom:8px; right:16px; font-size:11px; color:#475569; z-index:1000;">
+<div style="position:fixed; bottom:8px; right:16px; font-size:13px; color:#e2e8f0; background:rgba(30,41,59,0.85); padding:4px 12px; border-radius:6px; z-index:1000; font-weight:500;">
     v{APP_VERSION} · build {APP_BUILD}
 </div>
 """, unsafe_allow_html=True)
