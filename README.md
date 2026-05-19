@@ -20,8 +20,8 @@ The Control Tower bridges operational and commercial data to enable **business-i
 
 | Capability | What It Does | Business Outcome |
 |-----------|-------------|-----------------|
-| Revenue-at-Risk Scoring | Ranks delays by dollar impact, not just duration | Ops teams focus on the highest-value disruptions first |
-| VIP Crisis Detection | Auto-surfaces Platinum/VIP cargo on delayed flights | Account managers get alerted before customers escalate |
+| Revenue-at-Risk Scoring | Ranks delays by composite business-impact score (revenue × inverse-sentiment × delay) | Ops teams focus on the highest-value disruptions first |
+| VIP Crisis Detection | Auto-surfaces Platinum/VIP cargo on delayed flights, weighted by account health | Account managers get alerted before customers escalate |
 | SLA Compliance Tracker | Monitors protected flights against contractual deadlines | Penalty costs are mitigated before breach occurs |
 | AI Operations Advisor | Generates specific re-routing and escalation plans per crisis | Reduces decision time from hours to minutes |
 | Natural Language Queries | Ask questions in plain English, get instant data answers | No SQL expertise required for ad-hoc investigation |
@@ -163,8 +163,8 @@ App  →  Databricks Model Serving  →  Anthropic (Claude)
 ```
 
 The LLM is used for two capabilities:
-1. **Operations Advisor** (Flight Ops page) — analyzes all delayed flights and their shipments, generates a structured 5-point advisory with re-routing options, customer escalation priorities, and SLA protection steps
-2. **Crisis Response** (Priority page) — generates immediate action plans for the highest-impact VIP crisis scenario
+1. **Operations Advisor** (Flight Ops page) — analyzes all delayed flights and their shipments, generates a structured advisory with re-routing options, customer escalation priorities, and SLA protection steps. Output is rendered with styled section cards (urgent/warning/info/success) for rapid scanning.
+2. **Crisis Response** (Priority page) — generates immediate action plans for the highest-impact VIP crisis scenario, ranked by composite business-impact score
 
 ---
 
@@ -173,15 +173,31 @@ The LLM is used for two capabilities:
 | Page | Feature | Description |
 |------|---------|-------------|
 | Home | KPI Dashboard | Active flights, on-time rate, revenue at risk, VIP alerts, protected flights |
-| Home | Priority Alerts | Auto-ranked by business impact — click through to detailed crisis view |
-| Flight Ops | Route Map | Arc visualization of all flights, color-coded by status (delayed/in-air/on-time) |
-| Flight Ops | Delay Heatmap | Intensity-weighted map showing regional concentration of operational stress |
+| Home | Priority Alerts | Auto-ranked by composite crisis score (revenue × inverse-sentiment × delay) |
+| Flight Ops | Route Map | Arc visualization with hover tooltips showing flight direction (Origin → Destination) |
+| Flight Ops | Delay Heatmap | Intensity-weighted map with grouped hub tooltips (count, avg delay, flight list) |
 | Flight Ops | AI Advisor | One-click generation of structured operations advisory for delayed flights |
 | Shipments | Revenue Tracker | Filter by commodity, priority, critical revenue flag — with at-risk revenue summary |
 | Ask Genie | NL Queries | Ask questions in plain English — Genie translates to SQL and returns structured results |
-| Priority | VIP Crisis | Top 5 highest-impact customer/shipment combinations with AI-recommended actions |
+| Priority | VIP Crisis | Top 5 highest-impact crises ranked by business-impact score with AI-recommended actions |
 | Priority | SLA Compliance | Protected flight tracker with breach risk assessment |
 | Priority | Sentiment Watch | Flights under intensive monitoring for customer satisfaction impact |
+
+---
+
+## Interactive Map Features
+
+The Flight Ops page includes two interactive map visualizations built with pydeck:
+
+**Route Map (ArcLayer)**
+- Color-coded arcs: 🔴 Delayed · 🔵 In-Air · 🟢 On-Time · ⚪ Delivered
+- Hover any arc to see flight ID, origin → destination, and status
+- Covers 12 global cargo hubs (Chicago, London, Dubai, Tokyo, etc.)
+
+**Delay Heatmap (HeatmapLayer + ScatterplotLayer)**
+- Heat intensity weighted by delay minutes — instantly shows regional stress concentration
+- Hover hub hotspots for grouped tooltip: number of delayed flights, average delay, and individual flight breakdown
+- Up to 5 flights listed per hub with route and delay duration
 
 ---
 
