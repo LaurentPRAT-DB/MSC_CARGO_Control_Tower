@@ -620,7 +620,7 @@ if current_page == "Home":
         JOIN {CATALOG}.{SCHEMA}.msc_flights f ON s.Flight_ID=f.Flight_ID
         JOIN {CATALOG}.{SCHEMA}.msc_customers c ON s.Customer_ID=c.Customer_ID
         WHERE f.Flight_Status='Delayed' AND c.Customer_Tier='Platinum/VIP' AND s.Critical_Revenue_Flag=true
-        ORDER BY s.Revenue_Generated_USD DESC LIMIT 3
+        ORDER BY (s.Revenue_Generated_USD * (11 - c.Account_Sentiment_Score) * f.Delay_Minutes) DESC LIMIT 3
     """
     crisis_rows = execute_sql(crisis_sql)
     for idx, row in enumerate(crisis_rows):
@@ -806,7 +806,7 @@ elif current_page == "Flight Ops":
         if not valid_map.empty:
             st.markdown("<div style='height:24px'></div>", unsafe_allow_html=True)
             st.markdown("#### ✈️ Flight Route Map")
-            st.caption("Routes color-coded by status — 🔴 Delayed · 🔵 In-Air · 🟢 On-Time · ⚪ Delivered")
+            st.caption("Bright end = origin, faded end = destination — 🔴 Delayed · 🔵 In-Air · 🟢 On-Time · ⚪ Delivered")
 
             arc_layer = pdk.Layer(
                 "ArcLayer",
@@ -814,9 +814,10 @@ elif current_page == "Flight Ops":
                 get_source_position=["origin_lon", "origin_lat"],
                 get_target_position=["dest_lon", "dest_lat"],
                 get_source_color="color",
-                get_target_color="color",
+                get_target_color=[200, 200, 200, 160],
                 get_width=2,
                 get_height=0.3,
+                get_tilt=15,
                 pickable=True,
             )
 
@@ -878,6 +879,12 @@ elif current_page == "Flight Ops":
                     initial_view_state=pdk.ViewState(latitude=30, longitude=30, zoom=1.1, pitch=0),
                     map_style="mapbox://styles/mapbox/dark-v11",
                 ), use_container_width=True)
+
+                with st.expander("📊 View delay details by hub"):
+                    delay_details = valid_map[valid_map["Flight_Status"] == "Delayed"][
+                        ["Flight_ID", "Origin_City", "Destination_City", "Delay_Minutes"]
+                    ].sort_values("Delay_Minutes", ascending=False).reset_index(drop=True)
+                    st.dataframe(delay_details, use_container_width=True, hide_index=True)
             else:
                 st.info("No delays in current filter — heatmap not applicable.")
 
@@ -1170,7 +1177,7 @@ elif current_page == "Priority":
         JOIN {CATALOG}.{SCHEMA}.msc_flights f ON s.Flight_ID=f.Flight_ID
         JOIN {CATALOG}.{SCHEMA}.msc_customers c ON s.Customer_ID=c.Customer_ID
         WHERE f.Flight_Status='Delayed' AND c.Customer_Tier='Platinum/VIP' AND s.Critical_Revenue_Flag=true
-        ORDER BY s.Revenue_Generated_USD DESC LIMIT 5
+        ORDER BY (s.Revenue_Generated_USD * (11 - c.Account_Sentiment_Score) * f.Delay_Minutes) DESC LIMIT 5
     """
     vip_rows = execute_sql(vip_sql)
     if vip_rows:
