@@ -1263,7 +1263,20 @@ elif current_page == "Ask Genie":
     if "genie_conv_id" not in st.session_state:
         st.session_state.genie_conv_id = None
 
-    def display_genie_result(result: dict):
+    def generate_followup_questions(question: str, text_response: str, columns: list | None) -> list[str]:
+        context = f"Question: {question}\nAnswer: {text_response or 'Data table returned'}"
+        if columns:
+            context += f"\nData columns: {', '.join(columns)}"
+        prompt = (
+            "Based on this Q&A about air cargo operations, suggest exactly 3 short follow-up questions "
+            "the user might ask next. Each question should be different in nature (e.g., drill-down, comparison, trend). "
+            "Return ONLY the 3 questions, one per line, no numbering or bullets."
+        )
+        resp = call_llm([{"role": "system", "content": prompt}, {"role": "user", "content": context}], max_tokens=200, temperature=0.7)
+        lines = [l.strip() for l in resp.strip().split("\n") if l.strip() and not l.strip().startswith("Error")]
+        return lines[:3] if lines else []
+
+    def display_genie_result(result: dict, show_followups: bool = True):
         text = result.get("text_response")
         error = result.get("error")
         has_data = result.get("data") and result.get("columns")
@@ -1289,7 +1302,9 @@ elif current_page == "Ask Genie":
             if numeric_cols and non_numeric_cols and len(df) > 1:
                 label_col = non_numeric_cols[0]
                 chart_df = df.set_index(label_col)[numeric_cols]
-                if len(df) <= 20:
+                if len(numeric_cols) == 1 and len(df) <= 20:
+                    st.bar_chart(chart_df)
+                elif len(df) <= 20:
                     st.bar_chart(chart_df)
                 else:
                     st.line_chart(chart_df)
@@ -1298,18 +1313,29 @@ elif current_page == "Ask Genie":
             with st.expander("View SQL Query"):
                 st.code(result["sql"], language="sql")
 
+        if show_followups and result.get("text_response") and result.get("status") == "COMPLETED":
+            followups = result.get("followup_questions")
+            if followups:
+                st.markdown("**Suggested follow-ups:**")
+                fcols = st.columns(len(followups))
+                for i, fq in enumerate(followups):
+                    if fcols[i].button(fq, key=f"followup_{hash(fq)}_{i}", use_container_width=True):
+                        st.session_state.genie_pending = fq
+                        st.rerun()
+
     if st.session_state.genie_conv_id:
         if st.button("🔄 New Conversation", key="new_conv_top"):
             st.session_state.genie_messages = []
             st.session_state.genie_conv_id = None
             st.rerun()
 
-    for msg in st.session_state.genie_messages:
+    for idx, msg in enumerate(st.session_state.genie_messages):
         with st.chat_message(msg["role"]):
             if msg["role"] == "user":
                 st.write(msg["content"])
             else:
-                display_genie_result(msg)
+                is_last = idx == len(st.session_state.genie_messages) - 1
+                display_genie_result(msg, show_followups=is_last)
 
     if not st.session_state.genie_messages:
         st.markdown("**Try asking:**")
@@ -1333,6 +1359,10 @@ elif current_page == "Ask Genie":
             with st.spinner("Querying Genie..."):
                 result = ask_genie(prompt, st.session_state.genie_conv_id)
                 st.session_state.genie_conv_id = result.get("conversation_id")
+                if result.get("status") == "COMPLETED" and result.get("text_response"):
+                    result["followup_questions"] = generate_followup_questions(
+                        prompt, result.get("text_response", ""), result.get("columns")
+                    )
                 display_genie_result(result)
                 st.session_state.genie_messages.append({
                     "role": "assistant",
@@ -1342,6 +1372,8 @@ elif current_page == "Ask Genie":
                     "columns": result.get("columns"),
                     "data": result.get("data"),
                     "error": result.get("error"),
+                    "status": result.get("status"),
+                    "followup_questions": result.get("followup_questions"),
                 })
 
     if st.session_state.genie_conv_id:
@@ -1358,6 +1390,10 @@ elif current_page == "Ask Genie":
             with st.spinner("Querying Genie..."):
                 result = ask_genie(prompt, st.session_state.genie_conv_id)
                 st.session_state.genie_conv_id = result.get("conversation_id")
+                if result.get("status") == "COMPLETED" and result.get("text_response"):
+                    result["followup_questions"] = generate_followup_questions(
+                        prompt, result.get("text_response", ""), result.get("columns")
+                    )
                 display_genie_result(result)
                 st.session_state.genie_messages.append({
                     "role": "assistant",
@@ -1367,6 +1403,8 @@ elif current_page == "Ask Genie":
                     "columns": result.get("columns"),
                     "data": result.get("data"),
                     "error": result.get("error"),
+                    "status": result.get("status"),
+                    "followup_questions": result.get("followup_questions"),
                 })
 
 
