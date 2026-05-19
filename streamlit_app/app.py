@@ -421,6 +421,7 @@ def get_auth():
     return host, headers
 
 
+@st.cache_data(ttl=300, show_spinner=False)
 def execute_sql(sql: str) -> list:
     host, headers = get_auth()
     resp = requests.post(
@@ -436,6 +437,7 @@ def execute_sql(sql: str) -> list:
     return result.get("result", {}).get("data_array", [])
 
 
+@st.cache_data(ttl=300, show_spinner=False)
 def execute_sql_with_columns(sql: str) -> tuple[list, list]:
     host, headers = get_auth()
     resp = requests.post(
@@ -1204,6 +1206,22 @@ elif current_page == "Ask Genie":
     st.markdown("""
     <div class="section-title">Ask Genie</div>
     <div class="section-subtitle">Natural language queries on MSC Air Cargo operations data</div>
+    <style>
+    .stColumn .stButton button {
+        height: 80px !important;
+        min-height: 80px !important;
+        max-height: 80px !important;
+        white-space: normal !important;
+        word-wrap: break-word !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+        padding: 12px 16px !important;
+        font-size: 14px !important;
+        overflow: hidden !important;
+    }
+    </style>
     """, unsafe_allow_html=True)
 
     if not GENIE_SPACE_ID:
@@ -1257,21 +1275,7 @@ elif current_page == "Ask Genie":
                 display_genie_result(msg)
 
     if not st.session_state.genie_messages:
-        st.markdown("""**Try asking:**
-<style>
-div[data-testid="stHorizontalBlock"]:last-of-type div[data-testid="column"] .stButton > button {
-    height: 80px !important;
-    white-space: normal !important;
-    word-wrap: break-word !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    text-align: center !important;
-    padding: 12px 16px !important;
-    font-size: 14px !important;
-}
-</style>
-""", unsafe_allow_html=True)
+        st.markdown("**Try asking:**")
         suggestions = [
             "Which VIP customers have cargo on delayed flights?",
             "What is the total revenue at risk?",
