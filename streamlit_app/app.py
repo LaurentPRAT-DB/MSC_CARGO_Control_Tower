@@ -2,6 +2,7 @@ import os
 
 os.environ.setdefault("HOME", "/tmp")
 
+import re
 import time
 import json
 import requests
@@ -10,7 +11,7 @@ import pandas as pd
 from databricks.sdk import WorkspaceClient
 
 APP_VERSION = "1.1.0"
-APP_BUILD = "20260519-0945"
+APP_BUILD = "20260519-1045"
 
 st.set_page_config(
     page_title="MSC Air Cargo — Control Tower",
@@ -345,6 +346,62 @@ st.markdown("""
 
     div[data-testid="stVerticalBlock"] > div {gap: 0.5rem;}
     .stMetric { display: none; }
+
+    .advisory-section {
+        background: #1e293b !important;
+        border: 1px solid #334155;
+        border-left: 4px solid #3b82f6;
+        border-radius: 10px;
+        padding: 20px 24px;
+        margin-bottom: 16px;
+    }
+    .advisory-section.urgent {
+        border-left-color: #dc2626;
+    }
+    .advisory-section.warning {
+        border-left-color: #f59e0b;
+    }
+    .advisory-section.info {
+        border-left-color: #2563eb;
+    }
+    .advisory-section.success {
+        border-left-color: #10b981;
+    }
+    .advisory-section-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: #f1f5f9 !important;
+        margin-bottom: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .advisory-section-body {
+        font-size: 13px;
+        color: #cbd5e1 !important;
+        line-height: 1.7;
+    }
+    .advisory-section-body strong {
+        color: #f1f5f9 !important;
+    }
+    .advisory-section-body ul {
+        padding-left: 18px;
+        margin: 8px 0;
+    }
+    .advisory-section-body li {
+        margin-bottom: 8px;
+    }
+    .advisory-header {
+        font-size: 18px;
+        font-weight: 700;
+        color: #f1f5f9 !important;
+        margin-bottom: 4px;
+    }
+    .advisory-subtitle {
+        font-size: 13px;
+        color: #94a3b8 !important;
+        margin-bottom: 20px;
+    }
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -812,9 +869,10 @@ elif current_page == "Flight Ops":
         if not valid_map.empty:
             st.markdown("<div style='height:24px'></div>", unsafe_allow_html=True)
             st.markdown("#### ✈️ Flight Route Map")
-            st.caption("Arrowheads show flight direction — 🔴 Delayed · 🔵 In-Air · 🟢 On-Time · ⚪ Delivered")
+            st.caption("Hover on routes for details — 🔴 Delayed · 🔵 In-Air · 🟢 On-Time · ⚪ Delivered")
 
-            import math
+            valid_map["tooltip_text"] = valid_map.apply(
+                lambda r: f"{r['Flight_ID']}: {r['Origin_City']} → {r['Destination_City']} ({r['Flight_Status']})", axis=1)
 
             arc_layer = pdk.Layer(
                 "ArcLayer",
@@ -826,40 +884,7 @@ elif current_page == "Flight Ops":
                 get_width=2,
                 get_height=0.3,
                 pickable=True,
-            )
-
-            # Arrowhead lines near destination (V-shape pointing toward dest)
-            arrowhead_data = []
-            for _, row in valid_map.iterrows():
-                lat1, lon1 = math.radians(row["origin_lat"]), math.radians(row["origin_lon"])
-                lat2, lon2 = math.radians(row["dest_lat"]), math.radians(row["dest_lon"])
-                dlon = lon2 - lon1
-                x = math.sin(dlon) * math.cos(lat2)
-                y = math.cos(lat1) * math.sin(lat2) - math.sin(lat1) * math.cos(lat2) * math.cos(dlon)
-                bearing = math.atan2(x, y)
-                tip_lat = row["origin_lat"] + 0.85 * (row["dest_lat"] - row["origin_lat"])
-                tip_lon = row["origin_lon"] + 0.85 * (row["dest_lon"] - row["origin_lon"])
-                offset = 3.0
-                side = 1.5
-                tail_lat = tip_lat - offset * math.cos(bearing)
-                tail_lon = tip_lon - offset * math.sin(bearing)
-                left_lat = tail_lat + side * math.cos(bearing + math.pi / 2)
-                left_lon = tail_lon + side * math.sin(bearing + math.pi / 2)
-                right_lat = tail_lat - side * math.cos(bearing + math.pi / 2)
-                right_lon = tail_lon - side * math.sin(bearing + math.pi / 2)
-                arrowhead_data.append({"start_lon": left_lon, "start_lat": left_lat,
-                                       "end_lon": tip_lon, "end_lat": tip_lat, "color": row["color"]})
-                arrowhead_data.append({"start_lon": right_lon, "start_lat": right_lat,
-                                       "end_lon": tip_lon, "end_lat": tip_lat, "color": row["color"]})
-            arrowhead_df = pd.DataFrame(arrowhead_data)
-
-            arrow_layer = pdk.Layer(
-                "LineLayer",
-                data=arrowhead_df,
-                get_source_position=["start_lon", "start_lat"],
-                get_target_position=["end_lon", "end_lat"],
-                get_color="color",
-                get_width=3,
+                auto_highlight=True,
             )
 
             scatter_data = []
@@ -880,9 +905,10 @@ elif current_page == "Flight Ops":
             )
 
             st.pydeck_chart(pdk.Deck(
-                layers=[arc_layer, arrow_layer, scatter_layer],
+                layers=[arc_layer, scatter_layer],
                 initial_view_state=pdk.ViewState(latitude=30, longitude=30, zoom=1.3, pitch=30),
                 map_style="mapbox://styles/mapbox/dark-v11",
+                tooltip={"text": "{tooltip_text}"},
             ), use_container_width=True)
 
             # --- Delay Heatmap ---
@@ -915,10 +941,39 @@ elif current_page == "Flight Ops":
                     ],
                 )
 
+                # Hover points grouped by hub — shows KPI + flight list
+                delayed = valid_map[valid_map["Flight_Status"] == "Delayed"]
+                hub_flights = {}
+                for _, row in delayed.iterrows():
+                    for lat, lon, city in [(row["origin_lat"], row["origin_lon"], row["Origin_City"]),
+                                           (row["dest_lat"], row["dest_lon"], row["Destination_City"])]:
+                        hub_flights.setdefault((lat, lon, city), []).append(
+                            (row["Flight_ID"], row["Origin_City"], row["Destination_City"], int(row["Delay_Minutes"])))
+
+                hover_data = []
+                for (lat, lon, city), flights in hub_flights.items():
+                    count = len(flights)
+                    avg_delay = int(sum(f[3] for f in flights) / count)
+                    lines = [f"{city} — {count} delayed · Avg +{avg_delay}min"]
+                    for fid, orig, dest, delay in flights[:5]:
+                        lines.append(f"  {fid}: {orig}→{dest} +{delay}min")
+                    hover_data.append({"lat": lat, "lon": lon, "tooltip_text": "\n".join(lines)})
+                hover_df = pd.DataFrame(hover_data)
+
+                hover_layer = pdk.Layer(
+                    "ScatterplotLayer",
+                    data=hover_df,
+                    get_position=["lon", "lat"],
+                    get_fill_color=[255, 255, 255, 0],
+                    get_radius=120000,
+                    pickable=True,
+                )
+
                 st.pydeck_chart(pdk.Deck(
-                    layers=[heatmap_layer],
+                    layers=[heatmap_layer, hover_layer],
                     initial_view_state=pdk.ViewState(latitude=30, longitude=30, zoom=1.1, pitch=0),
                     map_style="mapbox://styles/mapbox/dark-v11",
+                    tooltip={"text": "{tooltip_text}"},
                 ), use_container_width=True)
 
                 with st.expander("📊 View delay details by hub"):
@@ -968,7 +1023,7 @@ elif current_page == "Flight Ops":
 
             if st.button("🛡️ Generate Operations Advisory", use_container_width=True):
                 flight_summary = "\n".join(
-                    f"- {row['Flight_ID']}: {row['Origin_City']} ({row['Origin']}) → {row['Destination_City']} ({row['Destination']}), "
+                    f"- {row['Flight_ID']} ({row['Origin']}→{row['Destination']}): {row['Origin_City']} to {row['Destination_City']}, "
                     f"Delay: {row['Delay_Minutes']}min, Status: {row['Flight_Status']}, "
                     f"Protected: {row['Schedule_Protection_Flag']}, Sentiment Watch: {row['Sentiment_Analysis_Flag']}"
                     for _, row in delayed_flights.iterrows()
@@ -976,7 +1031,7 @@ elif current_page == "Flight Ops":
                 shipment_summary = ""
                 if not ship_df.empty:
                     shipment_summary = "\n".join(
-                        f"- AWB {row['AWB_Number']} on {row['Flight_ID']}: {row['Commodity_Type']}, "
+                        f"- AWB {row['AWB_Number']} on flight {row['Flight_ID']}: {row['Commodity_Type']}, "
                         f"${float(row['Revenue_Generated_USD']):,.0f}, {row['Priority_Level']} priority, "
                         f"Customer: {row['Company_Name']} ({row['Customer_Tier']}, sentiment {row['Account_Sentiment_Score']}/10)"
                         for _, row in ship_df.iterrows()
@@ -990,18 +1045,79 @@ DELAYED FLIGHTS:
 AFFECTED SHIPMENTS:
 {shipment_summary if shipment_summary else "No shipment data available."}
 
-Provide a structured operations advisory with these sections:
-1. **IMMEDIATE ACTIONS** (next 30 minutes) — what the ops team must do right now
-2. **RE-ROUTING OPTIONS** — suggest alternative routing for the most critical cargo (Doc Charter, Pharma, Live Animals first), referencing specific flights and hubs
-3. **CUSTOMER ESCALATION** — which customers to contact first (prioritize by tier + sentiment + revenue), with specific talking points
-4. **SCHEDULE PROTECTION** — for any protected flights, flag SLA breach risk and penalty mitigation steps
-5. **PRIORITY RE-RANKING** — if resources are limited, which shipments to prioritize and which can tolerate the delay
+CRITICAL DATA ACCURACY RULES:
+- ONLY reference flight IDs, AWB numbers, customer names, revenue amounts, routes, and commodity types that appear EXACTLY in the data above.
+- Do NOT invent, abbreviate, or modify any flight ID or AWB number. Copy them character-for-character.
+- When referencing a flight, always include its full route (e.g. MSC-812 (LHR→JFK)) and delay duration.
+- When referencing a shipment, always include its full AWB number and exact revenue amount.
 
-Be specific: reference flight IDs, customer names, revenue amounts, and commodity types. Frame recommendations as an ops manager would act on them."""
+Provide a structured operations advisory using EXACTLY these 5 section headers (one line each, no numbering):
+## IMMEDIATE ACTIONS
+## RE-ROUTING OPTIONS
+## CUSTOMER ESCALATION
+## SCHEDULE PROTECTION
+## PRIORITY RE-RANKING
+
+For each section use bullet points. Be concise and actionable. Frame recommendations as an ops manager would act on them."""
 
                 with st.spinner("Analyzing flight disruptions and generating advisory..."):
                     response = call_llm([{"role": "user", "content": prompt}], max_tokens=2048, temperature=0.3)
-                st.markdown(response)
+
+                # Parse response into sections and render as cards
+                section_pattern = re.compile(r'^##\s+(.+)$', re.MULTILINE)
+                section_colors = {
+                    "IMMEDIATE ACTIONS": "urgent",
+                    "RE-ROUTING OPTIONS": "warning",
+                    "CUSTOMER ESCALATION": "info",
+                    "SCHEDULE PROTECTION": "success",
+                    "PRIORITY RE-RANKING": "info",
+                }
+                sections = section_pattern.split(response)
+                # sections[0] is preamble text (before first ##), then alternating title/body
+                preamble = sections[0].strip() if sections[0].strip() else None
+                total_delayed = len(delayed_flights)
+                total_revenue = ship_df['Revenue_Generated_USD'].astype(float).sum() if not ship_df.empty else 0
+
+                st.markdown(f"""
+                <div class="advisory-header">MSC Air Cargo Operations Advisory</div>
+                <div class="advisory-subtitle">{total_delayed} delayed flight{'s' if total_delayed != 1 else ''} affecting ${total_revenue:,.0f} in cargo</div>
+                """, unsafe_allow_html=True)
+
+                if preamble:
+                    st.markdown(f"""<div class="advisory-section">
+                        <div class="advisory-section-body">{preamble}</div>
+                    </div>""", unsafe_allow_html=True)
+
+                for i in range(1, len(sections), 2):
+                    title = sections[i].strip()
+                    body = sections[i + 1].strip() if i + 1 < len(sections) else ""
+                    color_class = section_colors.get(title, "info")
+                    # Convert markdown bullets to HTML list items
+                    lines = body.split("\n")
+                    has_bullets = any(line.strip().startswith(("- ", "* ")) for line in lines)
+                    if has_bullets:
+                        items = []
+                        current_item = ""
+                        for line in lines:
+                            stripped = line.strip()
+                            if stripped.startswith(("- ", "* ")):
+                                if current_item:
+                                    items.append(current_item)
+                                current_item = stripped[2:]
+                            elif stripped and current_item:
+                                current_item += " " + stripped
+                            elif stripped:
+                                items.append(stripped)
+                        if current_item:
+                            items.append(current_item)
+                        body_html = "<ul>" + "".join(f"<li>{item}</li>" for item in items) + "</ul>"
+                    else:
+                        body_html = body.replace("\n", "<br>")
+                    body_html = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', body_html)
+                    st.markdown(f"""<div class="advisory-section {color_class}">
+                        <div class="advisory-section-title">{title}</div>
+                        <div class="advisory-section-body">{body_html}</div>
+                    </div>""", unsafe_allow_html=True)
         else:
             st.success("No delayed flights in current view — no advisory needed.")
 
@@ -1141,7 +1257,21 @@ elif current_page == "Ask Genie":
                 display_genie_result(msg)
 
     if not st.session_state.genie_messages:
-        st.markdown("**Try asking:**")
+        st.markdown("""**Try asking:**
+<style>
+div[data-testid="stHorizontalBlock"]:last-of-type div[data-testid="column"] .stButton > button {
+    height: 80px !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    padding: 12px 16px !important;
+    font-size: 14px !important;
+}
+</style>
+""", unsafe_allow_html=True)
         suggestions = [
             "Which VIP customers have cargo on delayed flights?",
             "What is the total revenue at risk?",
@@ -1149,7 +1279,7 @@ elif current_page == "Ask Genie":
         ]
         suggestion_cols = st.columns(len(suggestions))
         for i, s in enumerate(suggestions):
-            if suggestion_cols[i].button(s, key=f"sug_{i}"):
+            if suggestion_cols[i].button(s, key=f"sug_{i}", use_container_width=True):
                 st.session_state.genie_pending = s
                 st.rerun()
 
@@ -1250,16 +1380,37 @@ CRISIS DETAILS:
 - Customer: {top_company} ({top_tier}), sentiment score: {top_sentiment}/10
 - Shipment: AWB {top_awb}, commodity: {top_commodity}, value: {top_rev_fmt}
 
-Provide exactly 5 numbered actions the ops team should take RIGHT NOW, in priority order. Each action should be:
-- Specific (name the flight, customer, or hub)
-- Actionable (who does what)
-- Time-bound (within what timeframe)
+CRITICAL DATA ACCURACY RULES:
+- ONLY reference the flight ID, AWB number, customer name, route, and revenue amount EXACTLY as provided above. Do NOT invent or modify any identifier.
+- Always include the full flight route when referencing the flight.
+- Always include the full AWB number when referencing the shipment.
 
-Keep each action to 1-2 sentences max. Focus on protecting revenue and customer relationship."""
+Provide exactly 5 actions the ops team should take RIGHT NOW, in priority order.
+Format each action as a single line starting with a bold title followed by a colon and the action details:
+**Title (Timeframe):** Action details here.
+
+Each action should be specific (name the flight, customer, or hub), actionable (who does what), and time-bound. Keep each to 1-2 sentences max. Focus on protecting revenue and customer relationship."""
 
             with st.spinner("Generating crisis response plan..."):
                 response = call_llm([{"role": "user", "content": crisis_prompt}], max_tokens=1024, temperature=0.2)
-            st.markdown(response)
+
+            st.markdown(f"""
+            <div class="advisory-header">Crisis Response — {top_flight_id} ({top_origin}→{top_dest})</div>
+            <div class="advisory-subtitle">{top_company} ({top_tier}) · AWB {top_awb} · {top_rev_fmt} at risk</div>
+            """, unsafe_allow_html=True)
+
+            lines = [l.strip() for l in response.strip().split("\n") if l.strip()]
+            action_num = 0
+            for line in lines:
+                cleaned = re.sub(r'^\d+[\.)\]]\s*', '', line)
+                if not cleaned:
+                    continue
+                action_num += 1
+                card_html = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', cleaned)
+                color_class = "urgent" if action_num <= 2 else "warning" if action_num <= 4 else "info"
+                st.markdown(f"""<div class="advisory-section {color_class}">
+                    <div class="advisory-section-body">{card_html}</div>
+                </div>""", unsafe_allow_html=True)
     else:
         st.success("No VIP crisis scenarios active.")
 
@@ -1349,16 +1500,36 @@ Keep each action to 1-2 sentences max. Focus on protecting revenue and customer 
 
 {chr(10).join(context_parts)}
 
-Provide a prioritized action plan (max 5 bullets) for the ops manager. Focus on:
+Provide a prioritized action plan with exactly 5 actions for the ops manager. Focus on:
 1. Immediate revenue protection for VIP customers
 2. Schedule protection SLA compliance
 3. Communication strategy for monitored flights
 4. Resource reallocation recommendations
 
+Format each action as a single line starting with a bold title followed by a colon and the action details:
+**Title:** Action details here.
+
 Be specific and actionable. Reference flight IDs and customer names where possible."""
 
             response = call_llm([{"role": "user", "content": prompt}], temperature=0.3)
-            st.markdown(response)
+
+            st.markdown("""
+            <div class="advisory-header">Operations Action Plan</div>
+            <div class="advisory-subtitle">AI-generated priorities based on current scenario analysis</div>
+            """, unsafe_allow_html=True)
+
+            lines = [l.strip() for l in response.strip().split("\n") if l.strip()]
+            action_num = 0
+            for line in lines:
+                cleaned = re.sub(r'^\d+[\.)\]]\s*', '', line)
+                if not cleaned:
+                    continue
+                action_num += 1
+                card_html = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', cleaned)
+                color_class = "urgent" if action_num <= 2 else "warning" if action_num <= 4 else "info"
+                st.markdown(f"""<div class="advisory-section {color_class}">
+                    <div class="advisory-section-body">{card_html}</div>
+                </div>""", unsafe_allow_html=True)
 
 # --- Footer with version ---
 st.markdown(f"""
