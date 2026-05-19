@@ -1278,9 +1278,11 @@ elif current_page == "Ask Genie":
             resp = call_llm([{"role": "system", "content": prompt}, {"role": "user", "content": context}], max_tokens=200, temperature=0.7)
             if resp and not resp.startswith("Error"):
                 lines = [l.strip() for l in resp.strip().split("\n") if l.strip()]
-                return lines[:3] if lines else []
-        except Exception:
-            pass
+                if lines:
+                    return lines[:3]
+            st.caption(f"⚠️ Follow-up generation: {resp[:100] if resp else 'empty response'}")
+        except Exception as e:
+            st.caption(f"⚠️ Follow-up generation error: {e}")
         return []
 
     def display_genie_result(result: dict, show_followups: bool = True):
