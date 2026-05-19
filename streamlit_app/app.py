@@ -421,8 +421,28 @@ def get_auth():
     return host, headers
 
 
-@st.cache_data(ttl=300, show_spinner=False)
-def execute_sql(sql: str) -> list:
+@st.cache_data(ttl=60, show_spinner=False)
+def _get_data_version() -> str:
+    """Check last modification time of the main table (lightweight metadata query, cached 60s)."""
+    host, headers = get_auth()
+    sql = f"DESCRIBE DETAIL {CATALOG}.{SCHEMA}.msc_flights"
+    resp = requests.post(
+        f"{host}/api/2.0/sql/statements",
+        headers=headers,
+        json={"warehouse_id": WAREHOUSE_ID, "statement": sql, "wait_timeout": "10s"},
+    )
+    if resp.status_code >= 400:
+        return "unknown"
+    result = resp.json()
+    rows = result.get("result", {}).get("data_array", [])
+    cols = [c.get("name", "") for c in result.get("manifest", {}).get("schema", {}).get("columns", [])]
+    if rows and "lastModified" in cols:
+        return str(rows[0][cols.index("lastModified")])
+    return "unknown"
+
+
+@st.cache_data(persist="disk", show_spinner=False)
+def _execute_sql_cached(sql: str, data_version: str) -> list:
     host, headers = get_auth()
     resp = requests.post(
         f"{host}/api/2.0/sql/statements",
@@ -437,8 +457,8 @@ def execute_sql(sql: str) -> list:
     return result.get("result", {}).get("data_array", [])
 
 
-@st.cache_data(ttl=300, show_spinner=False)
-def execute_sql_with_columns(sql: str) -> tuple[list, list]:
+@st.cache_data(persist="disk", show_spinner=False)
+def _execute_sql_with_columns_cached(sql: str, data_version: str) -> tuple[list, list]:
     host, headers = get_auth()
     resp = requests.post(
         f"{host}/api/2.0/sql/statements",
@@ -453,6 +473,14 @@ def execute_sql_with_columns(sql: str) -> tuple[list, list]:
     columns = [c.get("name", "") for c in result.get("manifest", {}).get("schema", {}).get("columns", [])]
     data = result.get("result", {}).get("data_array", [])
     return columns, data
+
+
+def execute_sql(sql: str) -> list:
+    return _execute_sql_cached(sql, _get_data_version())
+
+
+def execute_sql_with_columns(sql: str) -> tuple[list, list]:
+    return _execute_sql_with_columns_cached(sql, _get_data_version())
 
 
 def ask_genie(question: str, conversation_id: str | None = None) -> dict:
